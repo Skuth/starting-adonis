@@ -5,8 +5,13 @@ import Post from "App/Models/Post"
 import urlSlug from "url-slug"
 
 export default class PostsController {
-  public async index({}: HttpContextContract) {
-    const posts = await Post.query().orderBy("id", "desc").preload("author")
+  public async index({ request }: HttpContextContract) {
+    const { page } = request.only(["page"])
+
+    const posts = await Post.query()
+      .orderBy("id", "desc")
+      .preload("author")
+      .paginate(page || 1, 16)
 
     return posts
   }
