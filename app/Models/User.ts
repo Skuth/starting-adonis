@@ -2,6 +2,8 @@ import { DateTime } from "luxon"
 import Hash from "@ioc:Adonis/Core/Hash"
 import { column, beforeSave, BaseModel } from "@ioc:Adonis/Lucid/Orm"
 
+const dateFormart = "dd/MM/yyyy HH:mm:ss"
+
 export default class User extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -21,10 +23,21 @@ export default class User extends BaseModel {
   @column()
   public role: "admin" | "normal"
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({
+    autoCreate: true,
+    serialize: (value: DateTime) => {
+      return value.toFormat(dateFormart)
+    }
+  })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({
+    autoCreate: true,
+    autoUpdate: true,
+    serialize: (value: DateTime) => {
+      return value.toFormat(dateFormart)
+    }
+  })
   public updatedAt: DateTime
 
   @beforeSave()
