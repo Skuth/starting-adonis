@@ -1,5 +1,8 @@
 import { DateTime } from "luxon"
-import { BaseModel, column } from "@ioc:Adonis/Lucid/Orm"
+import { BaseModel, column, belongsTo, BelongsTo } from "@ioc:Adonis/Lucid/Orm"
+import User from "App/Models/User"
+
+const dateFormart = "dd/MM/yyyy HH:mm:ss"
 
 export default class Post extends BaseModel {
   @column({ isPrimary: true })
@@ -14,9 +17,41 @@ export default class Post extends BaseModel {
   @column()
   public slug: string
 
-  @column.dateTime({ autoCreate: true })
+  @column({ serializeAs: null })
+  public authorId: number
+
+  @belongsTo(() => User, { foreignKey: "authorId" })
+  public author: BelongsTo<typeof User>
+
+  @column.dateTime({
+    autoCreate: true,
+    serialize: (value: DateTime) => {
+      return value.toFormat(dateFormart)
+    }
+  })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({
+    autoCreate: true,
+    autoUpdate: true,
+    serialize: (value: DateTime) => {
+      return value.toFormat(dateFormart)
+    }
+  })
   public updatedAt: DateTime
+
+  public serialize(cherryPick?: any) {
+    return {
+      ...this.serializeAttributes(cherryPick?.fields, false),
+      ...this.serializeComputed(cherryPick?.fields),
+      ...this.serializeRelations(
+        {
+          author: {
+            fields: ["id", "name", "email"]
+          }
+        },
+        false
+      )
+    }
+  }
 }

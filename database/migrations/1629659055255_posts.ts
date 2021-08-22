@@ -9,6 +9,14 @@ export default class Posts extends BaseSchema {
 
       table.string("title").notNullable()
       table.text("content", "longtext").notNullable()
+      table.string("slug").notNullable().unique()
+      table
+        .integer("author_id")
+        .unsigned()
+        .references("id")
+        .inTable("users")
+        .onUpdate("CASCADE")
+        .onDelete("CASCADE")
 
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL

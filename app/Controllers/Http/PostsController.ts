@@ -1,21 +1,29 @@
 import { HttpContextContract } from "@ioc:Adonis/Core/HttpContext"
+import { StoreValidator, UpdateValidator } from "App/Validators/Post"
 import Post from "App/Models/Post"
+
+import urlSlug from "url-slug"
 
 export default class PostsController {
   public async index({}: HttpContextContract) {
-    const posts = await Post.all()
+    const posts = await Post.query().orderBy("id", "desc").preload("author")
 
     return posts
   }
 
-  public async store({ request }: HttpContextContract) {
-    const { title, content } = request.all()
+  public async store({ request, auth }: HttpContextContract) {
+    const { title, content } = await request.validate(StoreValidator)
+
+    const user = await auth.authenticate()
 
     const post = await Post.create({
       title,
       content,
-      slug: title.toLowerCase(),
+      slug: urlSlug(title),
+      authorId: user.id
     })
+
+    await post.load("author")
 
     return post
   }
@@ -33,14 +41,16 @@ export default class PostsController {
 
     const post = await Post.findOrFail(id)
 
-    const { title, content } = request.all()
+    const { title, content } = await request.validate(UpdateValidator)
 
     post.merge({
       title: title || post.title,
-      content: content || post.content,
+      content: content || post.content
     })
 
     await post.save()
+
+    await post.load("author")
 
     return post
   }
