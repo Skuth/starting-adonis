@@ -5,10 +5,20 @@ export default class AuthController {
     const { email, password } = request.all()
 
     const token = await auth.attempt(email, password, {
-      expiresIn: "1 day"
+      expiresIn: "30m"
     })
 
     return token
+  }
+
+  public async show({ auth }: HttpContextContract) {
+    const user = await auth.authenticate()
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email
+    }
   }
 
   public async destroy({ auth }: HttpContextContract) {
